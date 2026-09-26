@@ -1,0 +1,9 @@
+node_modules/
+web/public/app.js
+web/public/firebase-messaging-sw.js
+functions/.env
+functions/.env.*
+!functions/.env.example
+functions/.secret.local
+.firebase/
+*.log

@@ -1,0 +1,29 @@
+{
+  "hosting": {
+    "public": "web/public",
+    "predeploy": ["npm run build"],
+    "ignore": ["**/.*"],
+    "headers": [
+      {
+        "source": "/firebase-messaging-sw.js",
+        "headers": [{ "key": "Cache-Control", "value": "no-cache" }]
+      },
+      {
+        "source": "**/*.@(js|css|html|webmanifest)",
+        "headers": [{ "key": "Cache-Control", "value": "no-cache" }]
+      }
+    ]
+  },
+  "functions": {
+    "source": "functions",
+    "runtime": "nodejs22",
+    "ignore": ["node_modules", ".git", "test", "*.local"]
+  },
+  "firestore": {
+    "rules": "firestore.rules",
+    "indexes": "firestore.indexes.json"
+  },
+  "storage": {
+    "rules": "storage.rules"
+  }
+}
