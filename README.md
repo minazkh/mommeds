@@ -2,7 +2,7 @@
 
 A very simple medicine reminder for Mummy's iPhone, in Hindi.
 
-- **12:30 PM and 9:00 PM** her phone asks *"Mummy, dawaii kha liye?"*: a notification, then your voice when she opens it.
+- **9:00 AM and 9:00 PM** her phone asks *"Mummy, dawaii kha liye?"*: a notification, then your voice when she opens it.
 - She taps the big green **हाँ / Haan** button (or says it). If she taps **नहीं / Nahi** or doesn't answer, she is asked again **every 30 minutes**.
 - After **4 unanswered reminders (2 hours)** you get an alert. After 8, the reminders stop and the dose is marked missed.
 - Every **3 days** at 6 PM she is asked *"Mummy, dawaii ki bag ka photo bhejo"*. **Gemini** counts the tablets, compares them with the previous photo and the reminder log, and tells you whether the two match and when she's running low.
@@ -74,7 +74,7 @@ Do this in person or over a video call. It needs **iOS 16.4 or newer** (Settings
 5. On your phone, tap **Test Mummy's phone** and check that her phone buzzes.
 6. On her iPhone, check:
    - **Settings → Notifications → MomMeds**: Allow Notifications, **Sounds** and **Lock Screen** on, Banner Style **Persistent**.
-   - **Settings → Focus** (Do Not Disturb / Sleep): add **MomMeds** to allowed apps, or make sure no Focus is on at 12:30 and 9 PM.
+   - **Settings → Focus** (Do Not Disturb / Sleep): add **MomMeds** to allowed apps, or make sure no Focus is on at 9 AM and 9 PM.
    - Media volume up, so she can hear your voice when the app opens.
 
 To show her: *"Jab phone bajega, notification pe dabao, phir hara button dabao."*

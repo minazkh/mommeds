@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { DEFAULTS, slotsAround, decideDose, doseView, decidePhoto, parseAnswer, slotId } from "../lib/schedule.js";
 import { zonedToUtc, localParts } from "../lib/time.js";
 
-const cfg = { ...DEFAULTS };
+const cfg = { ...DEFAULTS, doseTimes: ["12:30", "21:00"] };
 const at = (date, hhmm) => zonedToUtc(date, hhmm, cfg.timezone);
 const MIN = 60 * 1000;
 

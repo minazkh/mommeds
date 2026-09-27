@@ -3,7 +3,7 @@ import { localParts, zonedToUtc, addDays, daysBetween, MINUTE } from "./time.js"
 
 export const DEFAULTS = {
   timezone: "Asia/Kolkata",
-  doseTimes: ["12:30", "21:00"],
+  doseTimes: ["09:00", "21:00"],
   intervalMin: 30, // ask again this often while she hasn't said "Haan"
   alertAfter: 4, // tell the admin after this many unanswered reminders
   maxReminders: 8, // after this many, stop and mark the dose as missed
