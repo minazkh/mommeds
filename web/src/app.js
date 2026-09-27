@@ -54,6 +54,15 @@ function say(text) {
   }
 }
 
+const HI_PART_OF_DAY = [[12, "सुबह"], [17, "दोपहर"], [20, "शाम"], [24, "रात"]];
+
+/** "21:00" -> "रात 9:00 बजे" */
+function hiTime(time) {
+  const [h, m] = time.split(":").map(Number);
+  const part = HI_PART_OF_DAY.find(([end]) => h < end)[1];
+  return `${part} ${((h + 11) % 12) + 1}:${String(m).padStart(2, "0")} बजे`;
+}
+
 function toast(msg) {
   const t = document.createElement("div");
   t.className = "toast";
@@ -62,16 +71,16 @@ function toast(msg) {
   setTimeout(() => t.remove(), 4000);
 }
 
-function busy(text = "Ek second...") {
+function busy(text = "एक सेकंड...") {
   render(`<div class="screen center"><div class="spinner"></div><p class="big">${esc(text)}</p></div>`);
 }
 
 function errorScreen(e) {
   render(`<div class="screen center">
     <div class="emoji">😕</div>
-    <p class="big">Kuch gadbad ho gayi</p>
+    <p class="big">कुछ गड़बड़ हो गई</p>
     <p class="muted">${esc(e?.message || e)}</p>
-    <button class="btn primary" id="retry">Phir se koshish karein</button>
+    <button class="btn primary" id="retry">फिर से कोशिश करें</button>
   </div>`);
   on("retry", () => start());
 }
@@ -83,7 +92,7 @@ async function start() {
     me = await api.call("whoami");
     return route();
   }
-  busy("Khul raha hai...");
+  busy("खुल रहा है...");
   try {
     const config = await (await fetch("/__/firebase/init.json")).json();
     firebaseApp = initializeApp(config);
@@ -114,7 +123,7 @@ async function start() {
 
 function route() {
   const asMom = me.role === "mom" || params.get("as") === "mom";
-  if (!DEMO && (!isStandalone && isIOS)) return installScreen();
+  if (!DEMO && (!isStandalone && isIOS)) return installScreen(asMom);
   if (!DEMO && notificationsNeedSetup()) return notifyScreen(asMom);
   if (!DEMO && !pushRegistered) {
     pushRegistered = true;
@@ -144,7 +153,18 @@ function loginScreen(auth) {
   });
 }
 
-function installScreen() {
+function installScreen(asMom) {
+  if (asMom) {
+    return render(`<div class="screen">
+    <div class="emoji">📲</div>
+    <h1>होम स्क्रीन पर जोड़ें</h1>
+    <ol class="steps">
+      <li>Safari में नीचे <b>शेयर</b> बटन <span class="share">⎋</span> दबाइए</li>
+      <li>नीचे जाकर <b>Add to Home Screen</b> दबाइए</li>
+      <li><b>Add</b> दबाइए, फिर होम स्क्रीन से <b>MomMeds</b> खोलिए</li>
+    </ol>
+  </div>`);
+  }
   render(`<div class="screen">
     <div class="emoji">📲</div>
     <h1>Add to Home Screen</h1>
@@ -165,17 +185,19 @@ function notifyScreen(asMom) {
   const blocked = "Notification" in window && Notification.permission === "denied";
   render(`<div class="screen center">
     <div class="emoji">🔔</div>
-    <h1>${asMom ? "Notification chalu karein" : "Turn on notifications"}</h1>
+    <h1>${asMom ? "नोटिफ़िकेशन चालू करें" : "Turn on notifications"}</h1>
     ${blocked
-      ? `<p>Notifications are blocked. Open <b>Settings → Notifications → MomMeds</b> and turn on <b>Allow Notifications</b>, then reopen the app.</p>`
-      : `<button class="btn yes" id="enable">🔔 ${asMom ? "Chalu karein" : "Turn on"}</button>`}
+      ? (asMom
+        ? `<p>नोटिफ़िकेशन बंद हैं। <b>Settings → Notifications → MomMeds</b> में जाकर <b>Allow Notifications</b> चालू करें, फिर ऐप दोबारा खोलें।</p>`
+        : `<p>Notifications are blocked. Open <b>Settings → Notifications → MomMeds</b> and turn on <b>Allow Notifications</b>, then reopen the app.</p>`)
+      : `<button class="btn yes" id="enable">🔔 ${asMom ? "चालू करें" : "Turn on"}</button>`}
   </div>`);
   on("enable", async () => {
     const p = await Notification.requestPermission();
     if (p === "granted") {
       pushRegistered = true;
       await registerPush(asMom).catch((e) => toast(`Could not register: ${e.message}`));
-      toast("✅ Notifications on");
+      toast(asMom ? "✅ नोटिफ़िकेशन चालू" : "✅ Notifications on");
     }
     route();
   });
@@ -217,12 +239,12 @@ function askDose(slot) {
   render(`<div class="screen ask">
     <button class="question" id="replay">
       <span class="emoji">💊</span>
-      <span class="q">Mummy, dawaii kha liye?</span>
-      <span class="sub">${esc(slot.label)} ki dawaii · ${esc(slot.nice)} · 🔊</span>
+      <span class="q">मम्मी, दवाई खा लिए?</span>
+      <span class="sub">${esc(hiTime(slot.time))} की दवाई · 🔊</span>
     </button>
-    <button class="btn yes huge" id="yes">हाँ <small>Haan</small></button>
-    <button class="btn no" id="no">नहीं <small>Nahi</small></button>
-    ${speechSupported() ? `<button class="btn ghost" id="mic">🎤 Bol ke batao</button>` : ""}
+    <button class="btn yes huge" id="yes">हाँ</button>
+    <button class="btn no" id="no">नहीं</button>
+    ${speechSupported() ? `<button class="btn ghost" id="mic">🎤 बोलकर बताइए</button>` : ""}
   </div>`);
   on("replay", () => play("dose"));
   on("yes", () => answer(slot, "yes", "button"));
@@ -241,15 +263,15 @@ async function answer(slot, ans, via) {
   if (ans === "yes") {
     render(`<div class="screen center thanks">
       <div class="emoji">🙏</div>
-      <p class="huge-text">Shabash Mummy!</p>
-      <p class="big">Dawaii kha li ✅</p>
+      <p class="huge-text">शाबाश मम्मी!</p>
+      <p class="big">दवाई खा ली ✅</p>
     </div>`);
     say("शाबाश मम्मी!");
   } else {
     render(`<div class="screen center">
       <div class="emoji">🙂</div>
-      <p class="big">Theek hai Mummy.</p>
-      <p class="big">Aadhe ghante mein phir yaad dilayenge.</p>
+      <p class="big">ठीक है मम्मी।</p>
+      <p class="big">आधे घंटे में फिर याद दिलाएँगे।</p>
     </div>`);
     say("ठीक है मम्मी, आधे घंटे में फिर याद दिलाएंगे");
   }
@@ -267,7 +289,7 @@ function listen(slot) {
   rec.interimResults = false;
   rec.maxAlternatives = 5;
   const mic = document.getElementById("mic");
-  mic.textContent = "🎤 Sun rahe hain... boliye";
+  mic.textContent = "🎤 सुन रहे हैं... बोलिए";
   mic.classList.add("listening");
   let handled = false;
   rec.onresult = (e) => {
@@ -276,13 +298,13 @@ function listen(slot) {
     handled = true;
     if (ans) answer(slot, ans, "voice");
     else {
-      mic.textContent = `🎤 "${heard[0] || ""}" — samajh nahi aaya. Button dabaiye`;
+      mic.textContent = `🎤 "${heard[0] || ""}" — समझ नहीं आया। बटन दबाइए`;
       mic.classList.remove("listening");
     }
   };
   rec.onerror = rec.onend = () => {
     if (!handled) {
-      mic.textContent = "🎤 Bol ke batao";
+      mic.textContent = "🎤 बोलकर बताइए";
       mic.classList.remove("listening");
     }
   };
@@ -293,10 +315,10 @@ function askPhoto() {
   render(`<div class="screen ask">
     <button class="question" id="replay">
       <span class="emoji">📷</span>
-      <span class="q">Mummy, dawaii ki bag ka photo bhejo</span>
-      <span class="sub">Saari dawaiyon ke patte table par rakh ke photo lijiye · 🔊</span>
+      <span class="q">मम्मी, दवाई की बैग का फ़ोटो भेजो</span>
+      <span class="sub">सारी दवाइयों के पत्ते टेबल पर रखकर फ़ोटो लीजिए · 🔊</span>
     </button>
-    <label class="btn yes huge" for="cam">📷 Photo khinchiye</label>
+    <label class="btn yes huge" for="cam">📷 फ़ोटो खींचिए</label>
     <input type="file" id="cam" accept="image/*" capture="environment" hidden>
   </div>`);
   on("replay", () => play("photo"));
@@ -325,7 +347,7 @@ async function compress(file, max = 1600) {
 }
 
 async function sendPhoto(file) {
-  busy("Photo bhej rahe hain...");
+  busy("फ़ोटो भेज रहे हैं...");
   let res;
   try {
     res = await api.call("uploadPhoto", { image: await compress(file), mimeType: "image/jpeg" });
@@ -335,9 +357,9 @@ async function sendPhoto(file) {
   if (res.retakeAdvice) {
     render(`<div class="screen center">
       <div class="emoji">🤔</div>
-      <p class="big">Photo saaf nahi aaya.</p>
+      <p class="big">फ़ोटो साफ़ नहीं आया।</p>
       <p class="big">${esc(res.retakeAdvice)}</p>
-      <label class="btn yes huge" for="cam">📷 Phir se khinchiye</label>
+      <label class="btn yes huge" for="cam">📷 फिर से खींचिए</label>
       <input type="file" id="cam" accept="image/*" capture="environment" hidden>
     </div>`);
     document.getElementById("cam").addEventListener("change", (e) => e.target.files[0] && sendPhoto(e.target.files[0]));
@@ -345,8 +367,8 @@ async function sendPhoto(file) {
   }
   render(`<div class="screen center thanks">
     <div class="emoji">🙏</div>
-    <p class="huge-text">Dhanyavaad Mummy!</p>
-    <p class="big">Photo mil gaya ✅</p>
+    <p class="huge-text">धन्यवाद मम्मी!</p>
+    <p class="big">फ़ोटो मिल गया ✅</p>
   </div>`);
   say("धन्यवाद मम्मी!");
   homeTimer = setTimeout(() => momHome(), 6000);
@@ -355,10 +377,10 @@ async function sendPhoto(file) {
 function idleScreen(s) {
   render(`<div class="screen center">
     <div class="emoji">🙂</div>
-    <p class="huge-text">Sab theek hai, Mummy!</p>
-    ${s.next ? `<p class="big">Agli dawaii: ${esc(s.next.label)} ${esc(s.next.nice)}</p>` : ""}
-    ${s.early ? `<button class="btn yes" id="early">✅ Maine ${esc(s.early.label.toLowerCase())} ki dawaii kha li</button>` : ""}
-    <label class="btn ghost" for="cam">📷 Dawaii ka photo bhejo</label>
+    <p class="huge-text">सब ठीक है, मम्मी!</p>
+    ${s.next ? `<p class="big">अगली दवाई: ${esc(hiTime(s.next.time))}</p>` : ""}
+    ${s.early ? `<button class="btn yes" id="early">✅ मैंने ${esc(s.early.label)} की दवाई खा ली</button>` : ""}
+    <label class="btn ghost" for="cam">📷 दवाई का फ़ोटो भेजो</label>
     <input type="file" id="cam" accept="image/*" capture="environment" hidden>
     ${me.role === "admin" ? `<a class="btn ghost" href="/">← Admin dashboard</a>` : ""}
   </div>`);

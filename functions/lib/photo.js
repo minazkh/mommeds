@@ -33,7 +33,7 @@ const SCHEMA = {
     lowSupply: { type: Type.BOOLEAN, description: "True if any medicine looks like it will run out within ~5 days." },
     retakeAdvice: {
       type: Type.STRING,
-      description: "If the photo is unusable, a very short instruction in simple Hinglish for Mummy. Otherwise empty.",
+      description: "If the photo is unusable, a very short instruction for Mummy in simple Hindi, written in Devanagari script. Otherwise empty.",
     },
     summary: { type: Type.STRING, description: "2-3 short sentences in English for her son/daughter." },
   },

@@ -19,9 +19,9 @@ export function demoApi(mode) {
   const responses = {
     whoami: { role: mode === "admin" ? "admin" : "mom", vapidKey: "demo" },
     getStatus: {
-      current: mode === "ask" ? slot("12:30", "Dopahar", "12:30 PM") : null,
-      next: slot("21:00", "Raat", "9:00 PM"),
-      early: mode === "home" ? slot("21:00", "Raat", "9:00 PM") : null,
+      current: mode === "ask" ? slot("12:30", "दोपहर", "12:30 PM") : null,
+      next: slot("21:00", "रात", "9:00 PM"),
+      early: mode === "home" ? slot("21:00", "रात", "9:00 PM") : null,
       photoRequested: mode === "photo",
     },
     answerDose: { ok: true },
@@ -36,7 +36,7 @@ export function demoApi(mode) {
       doses,
       devices: [{ role: "mom" }, { role: "admin" }],
       state: { lastPhotoDate: new Date(now - 2 * 86400000).toISOString().slice(0, 10) },
-      view: { next: slot("21:00", "Raat", "9:00 PM") },
+      view: { next: slot("21:00", "रात", "9:00 PM") },
       photos: [{
         url: "/icons/icon-512.png",
         createdAt: now - 2 * 86400000,

@@ -62,10 +62,10 @@ function appUrl() {
 
 function slotLabel(time) {
   const h = Number(time.slice(0, 2));
-  if (h < 12) return "Subah";
-  if (h < 17) return "Dopahar";
-  if (h < 20) return "Shaam";
-  return "Raat";
+  if (h < 12) return "सुबह";
+  if (h < 17) return "दोपहर";
+  if (h < 20) return "शाम";
+  return "रात";
 }
 
 function niceTime(time) {
@@ -90,10 +90,10 @@ function requireAdmin(req) {
 // ---- Messages ----
 function remindMom(slot, n) {
   return pushTo("mom", {
-    title: "💊 Mummy, dawaii kha liye?",
+    title: "💊 मम्मी, दवाई खा लिए?",
     body: n === 1
-      ? `${slotLabel(slot.time)} ki dawaii ka time. Yahan dabaiye 👆`
-      : `Yaad se ${slotLabel(slot.time).toLowerCase()} ki dawaii kha lijiye 🙏 Yahan dabaiye 👆`,
+      ? `${slotLabel(slot.time)} की दवाई का समय। यहाँ दबाइए 👆`
+      : `याद से ${slotLabel(slot.time)} की दवाई खा लीजिए 🙏 यहाँ दबाइए 👆`,
     link: `${appUrl()}/?ask=dose`,
     tag: "dose",
   });
@@ -101,8 +101,8 @@ function remindMom(slot, n) {
 
 function askPhoto() {
   return pushTo("mom", {
-    title: "📷 Mummy, dawaii ki bag ka photo bhejo",
-    body: "Yahan dabaiye aur photo khinchiye 👆",
+    title: "📷 मम्मी, दवाई की बैग का फ़ोटो भेजो",
+    body: "यहाँ दबाइए और फ़ोटो खींचिए 👆",
     link: `${appUrl()}/?ask=photo`,
     tag: "photo",
   });
@@ -365,7 +365,7 @@ export const adminAction = onCall(async (req) => {
       return askPhoto();
     }
     case "testMom":
-      return pushTo("mom", { title: "🙂 Test", body: "Notification theek kaam kar raha hai", link: `${appUrl()}/`, tag: "test" });
+      return pushTo("mom", { title: "🙂 टेस्ट", body: "नोटिफ़िकेशन ठीक काम कर रहा है", link: `${appUrl()}/`, tag: "test" });
     case "testAdmin":
       return pushTo("admin", { title: "MomMeds test", body: "Admin notifications are working ✅", link: `${appUrl()}/`, tag: "test" });
     default:
