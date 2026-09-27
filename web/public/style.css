@@ -104,3 +104,4 @@ code { font-size: 0.9em; }
   .photo { grid-template-columns: 80px 1fr; }
   .photo img { width: 80px; height: 80px; }
 }
+.version { position: fixed; right: 10px; bottom: calc(4px + env(safe-area-inset-bottom)); margin: 0; color: var(--muted); font-size: 11px; opacity: 0.6; pointer-events: none; }

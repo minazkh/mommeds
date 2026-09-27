@@ -34,9 +34,12 @@ const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(
 const isIOS = /iPhone|iPad|iPod/.test(navigator.userAgent);
 const isStandalone = matchMedia("(display-mode: standalone)").matches || navigator.standalone === true;
 
+/* global __VERSION__ */
+const VERSION = typeof __VERSION__ === "string" ? __VERSION__ : "dev";
+
 function render(html) {
   clearTimeout(homeTimer);
-  $app.innerHTML = html;
+  $app.innerHTML = `${html}<p class="version">v ${VERSION}</p>`;
   window.scrollTo(0, 0);
 }
 
@@ -155,9 +158,9 @@ function loginScreen(auth) {
   render(`<form class="screen" id="login">
     <div class="emoji">💊</div>
     <h1>MomMeds</h1>
-    <label>Email<input type="email" id="email" autocomplete="username" required></label>
-    <label>Password<input type="password" id="pw" autocomplete="current-password" required></label>
-    <button class="btn primary" type="submit">Log in</button>
+    <label>ईमेल / Email<input type="email" id="email" autocomplete="username" required></label>
+    <label>पासवर्ड / Password<input type="password" id="pw" autocomplete="current-password" required></label>
+    <button class="btn primary" type="submit">लॉग इन / Log in</button>
     <p class="muted" id="err"></p>
   </form>`);
   document.getElementById("login").addEventListener("submit", async (e) => {

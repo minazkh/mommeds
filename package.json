@@ -3,7 +3,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "esbuild web/src/app.js --bundle --format=esm --minify --target=safari16 --outfile=web/public/app.js && esbuild web/src/sw.js --bundle --format=iife --minify --target=safari16 --outfile=web/public/firebase-messaging-sw.js",
+    "build": "node scripts/build.mjs",
     "test": "npm --prefix functions test",
     "demo": "npm run build && npx --yes serve web/public -l 5000"
   },
