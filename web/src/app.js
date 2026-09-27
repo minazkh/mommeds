@@ -1,6 +1,13 @@
 // MomMeds web app. One app, two modes: Mummy's big-button screen and the admin dashboard.
 import { initializeApp } from "firebase/app";
-import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut } from "firebase/auth";
+import {
+  initializeAuth,
+  indexedDBLocalPersistence,
+  browserLocalPersistence,
+  onAuthStateChanged,
+  signInWithEmailAndPassword,
+  signOut,
+} from "firebase/auth";
 import { getFunctions, httpsCallable } from "firebase/functions";
 import { getMessaging, getToken, onMessage, isSupported } from "firebase/messaging";
 import { parseAnswer } from "../../functions/lib/schedule.js";
@@ -100,7 +107,12 @@ async function start() {
   } catch (e) {
     return errorScreen("App is not deployed to Firebase Hosting yet (missing /__/firebase/init.json).");
   }
-  const auth = getAuth(firebaseApp);
+  // Stay logged in forever: the login is kept on the phone (IndexedDB, with localStorage
+  // as backup) and Firebase refreshes it automatically. Only "Sign out" on the admin
+  // dashboard, a password change or deleting the user in Firebase ends it.
+  const auth = initializeAuth(firebaseApp, { persistence: [indexedDBLocalPersistence, browserLocalPersistence] });
+  // Ask the browser not to clear this app's storage when the phone is low on space.
+  navigator.storage?.persist?.().catch(() => {});
   const functions = getFunctions(firebaseApp, REGION);
   api = {
     call: async (name, data) => (await httpsCallable(functions, name, { timeout: 120000 })(data)).data,
@@ -129,7 +141,12 @@ function route() {
     pushRegistered = true;
     registerPush(asMom).catch((e) => console.warn("push registration failed", e));
   }
-  if (asMom) return momHome();
+  if (asMom) {
+    if (params.get("ask") === "photo") {
+      try { localStorage.removeItem(SNOOZE_KEY); } catch { /* ignore */ }
+    }
+    return momHome();
+  }
   return adminHome();
 }
 
@@ -214,8 +231,10 @@ async function registerPush(asMom) {
   const token = await getToken(messaging, { vapidKey: me.vapidKey, serviceWorkerRegistration: reg });
   await api.call("registerDevice", { token, userAgent: navigator.userAgent });
   onMessage(messaging, (payload) => {
-    if (asMom) momHome();
-    else {
+    if (asMom) {
+      if (payload.data?.tag === "photo") localStorage.removeItem(SNOOZE_KEY);
+      momHome();
+    } else {
       toast(payload.notification?.body || "Update");
       adminHome();
     }
@@ -231,7 +250,7 @@ async function momHome() {
     return errorScreen(e);
   }
   if (s.current) return askDose(s.current);
-  if (s.photoRequested) return askPhoto();
+  if (s.photoRequested && !photoSnoozed()) return askPhoto();
   idleScreen(s);
 }
 
@@ -320,10 +339,32 @@ function askPhoto() {
     </button>
     <label class="btn yes huge" for="cam">📷 फ़ोटो खींचिए</label>
     <input type="file" id="cam" accept="image/*" capture="environment" hidden>
+    <button class="btn ghost" id="later">⏰ बाद में भेजूँगी</button>
   </div>`);
   on("replay", () => play("photo"));
+  on("later", () => {
+    snoozePhoto();
+    momHome();
+  });
   document.getElementById("cam").addEventListener("change", (e) => e.target.files[0] && sendPhoto(e.target.files[0]));
   play("photo");
+}
+
+// "Later" on the photo screen hides it for an hour (the next photo reminder comes then).
+const SNOOZE_KEY = "photoSnoozedUntil";
+function snoozePhoto() {
+  try {
+    localStorage.setItem(SNOOZE_KEY, String(Date.now() + 60 * 60 * 1000));
+  } catch {
+    /* storage unavailable */
+  }
+}
+function photoSnoozed() {
+  try {
+    return Number(localStorage.getItem(SNOOZE_KEY) || 0) > Date.now();
+  } catch {
+    return false;
+  }
 }
 
 async function compress(file, max = 1600) {
