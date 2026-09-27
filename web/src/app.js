@@ -18,10 +18,6 @@ const params = new URLSearchParams(location.search);
 const DEMO = params.get("demo");
 const $app = document.getElementById("app");
 
-const audio = {
-  dose: new Audio("/audio/ask-dose.m4a"),
-  photo: new Audio("/audio/ask-photo.m4a"),
-};
 
 let api; // { call(name, data), signOut }
 let me = null; // result of whoami
@@ -36,6 +32,12 @@ const isStandalone = matchMedia("(display-mode: standalone)").matches || navigat
 
 /* global __VERSION__ */
 const VERSION = typeof __VERSION__ === "string" ? __VERSION__ : "dev";
+
+// ?v= makes phones fetch new recordings after each deploy instead of a cached old one.
+const audio = {
+  dose: new Audio(`/audio/ask-dose.m4a?v=${VERSION}`),
+  photo: new Audio(`/audio/ask-photo.m4a?v=${VERSION}`),
+};
 
 function render(html) {
   clearTimeout(homeTimer);
