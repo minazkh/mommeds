@@ -34,9 +34,13 @@ const PHOTO_EVERY_DAYS = defineInt("PHOTO_EVERY_DAYS", { default: DEFAULTS.photo
 const PHOTO_TIME = defineString("PHOTO_TIME", { default: DEFAULTS.photoTime });
 const NOTIFY_ADMIN_ON_TAKEN = defineBoolean("NOTIFY_ADMIN_ON_TAKEN", { default: true });
 const GEMINI_MODEL = defineString("GEMINI_MODEL", { default: "gemini-flash-latest" });
-const WHATSAPP_PHONE = defineString("WHATSAPP_PHONE", { default: "" });
-const WHATSAPP_APIKEY = defineString("WHATSAPP_APIKEY", { default: "" });
-const APP_URL = defineString("APP_URL", { default: "" });
+// Optional settings are read straight from functions/.env so deploy doesn't prompt for them.
+// Empty or "none" means off.
+function optional(name) {
+  const v = (process.env[name] || "").trim();
+  return v.toLowerCase() === "none" ? "" : v;
+}
+const whatsappConfig = () => ({ phone: optional("WHATSAPP_PHONE"), apiKey: optional("WHATSAPP_APIKEY") });
 const GEMINI_API_KEY = defineSecret("GEMINI_API_KEY");
 
 function cfg() {
@@ -53,7 +57,7 @@ function cfg() {
 }
 
 function appUrl() {
-  return APP_URL.value() || `https://${process.env.GCLOUD_PROJECT}.web.app`;
+  return optional("APP_URL") || `https://${process.env.GCLOUD_PROJECT}.web.app`;
 }
 
 function slotLabel(time) {
@@ -107,7 +111,10 @@ function askPhoto() {
 async function alertAdmin(text, { urgent = true } = {}) {
   logger.info("Admin alert", { text });
   await pushTo("admin", { title: "MomMeds", body: text, link: `${appUrl()}/`, tag: `admin-${Date.now()}` });
-  if (urgent) await whatsapp(WHATSAPP_PHONE.value(), WHATSAPP_APIKEY.value(), `MomMeds: ${text}`);
+  if (urgent) {
+    const { phone, apiKey } = whatsappConfig();
+    await whatsapp(phone, apiKey, `MomMeds: ${text}`);
+  }
 }
 
 function doseAlertText(kind, slot, c) {
@@ -321,7 +328,7 @@ export const adminDashboard = onCall(async (req) => {
   ]);
   return {
     today,
-    config: { ...c, appUrl: appUrl(), whatsapp: Boolean(WHATSAPP_PHONE.value() && WHATSAPP_APIKEY.value()) },
+    config: { ...c, appUrl: appUrl(), whatsapp: Boolean(whatsappConfig().phone && whatsappConfig().apiKey) },
     doses: doses.docs.map((d) => ({ id: d.id, ...d.data() })),
     photos: photos.docs.map((d) => ({ id: d.id, ...d.data() })),
     devices: devices.docs.map((d) => {
