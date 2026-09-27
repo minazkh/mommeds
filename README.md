@@ -27,7 +27,7 @@ Mummy's iPhone (Home Screen app)  ⇄  Firebase Cloud Functions  ⇄  Firestore 
    Then under **Users → Add user**, create two logins:
    - one for Mummy, e.g. `mummy.meds@gmail.com` (it doesn't need to be a real inbox) with a simple password
    - one for yourself
-4. **Build → Firestore Database → Create database**. Choose the **production** rules and location **asia-south1 (Mumbai)**.
+4. **Build → Firestore Database → Create database**. Choose the **production** rules and a location near Mummy, e.g. **asia-southeast1 (Singapore)** or **asia-south1 (Mumbai)**. If it isn't Singapore, change `REGION` in `functions/index.js` and `web/src/app.js` to match.
 5. **Build → Storage → Get started**, same location.
 6. **Project settings (⚙️) → Cloud Messaging → Web Push certificates → Generate key pair.** Copy the key. This is your `VAPID_KEY`.
 

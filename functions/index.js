@@ -17,8 +17,8 @@ import { analyzePhoto, formatAnalysis } from "./lib/photo.js";
 initializeApp();
 const db = getFirestore();
 
-// Keep everything close to Mummy (India). Change if she lives elsewhere.
-const REGION = "asia-south1";
+// Same region as the Firestore database (Singapore), close to Mummy in India.
+const REGION = "asia-southeast1";
 setGlobalOptions({ region: REGION, maxInstances: 5 });
 
 // ---- Configuration (set in functions/.env, see README) ----

@@ -6,7 +6,7 @@ import { getMessaging, getToken, onMessage, isSupported } from "firebase/messagi
 import { parseAnswer } from "../../functions/lib/schedule.js";
 import { demoApi } from "./demo.js";
 
-const REGION = "asia-south1"; // must match functions/index.js
+const REGION = "asia-southeast1"; // must match functions/index.js
 const params = new URLSearchParams(location.search);
 const DEMO = params.get("demo");
 const $app = document.getElementById("app");
